@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${project.title}">Project Title</title>
+    <style>
+        .project-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .game-frame { width: 100%; height: 600px; border: 2px solid #333; border-radius: 8px; }
+        .game-iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+<div class="project-container">
+    <h1 th:text="${project.title}">Project Title</h1>
+
+    <img th:if="${project.imageFileName}"
+         th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+         width="400">
+
+    <div class="project-info">
+        <h3>Описание</h3>
+        <p th:text="${project.description}">Description</p>
+        <p><strong>Жанр:</strong> <span th:text="${project.genre}">Genre</span></p>
+    </div>
+
+    <div th:if="${hasGame}" class="game-container">
+        <h3>🎮 Запустить игру</h3>
+        <div class="game-frame">
+            <iframe th:src="@{/files/projects/{id}/build/index.html(id=${project.id})}"
+                    class="game-iframe"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/">← Назад к списку</a>
+    </div>
+</div>
+</body>
+</html>

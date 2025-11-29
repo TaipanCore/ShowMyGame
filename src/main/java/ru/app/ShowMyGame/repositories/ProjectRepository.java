@@ -13,34 +13,34 @@ import java.util.List;
 public class ProjectRepository
 {
     @PersistenceContext
-    private EntityManager em;
+    private EntityManager entityManager;
 
     @Transactional
     public Project getProjectById(Integer id)
     {
-        return em.find(Project.class, id);
+        return entityManager.find(Project.class, id);
     }
     @Transactional
     public List<Project> getAllProjects()
     {
-        TypedQuery<Project> query = em.createQuery("FROM Project", Project.class);
+        TypedQuery<Project> query = entityManager.createQuery("FROM Project", Project.class);
         return query.getResultList();
     }
     @Transactional
     public Project addNewProject(Project project)
     {
-        em.persist(project);
+        entityManager.persist(project);
         return project;
     }
     @Transactional
     public Project editProject(Project project)
     {
-        em.merge(project);
+        entityManager.merge(project);
         return project;
     }
     @Transactional
-    public void deleteProjectById(Project project)
+    public void deleteProject(Project project)
     {
-        em.remove(project);
+        entityManager.remove(project);
     }
 }

@@ -4,22 +4,22 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.awt.image.BufferedImage;
 
 @Entity
 @Table(name="projects")
 public class Project
 {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private Integer author_id;
     private String title;
     private String description;
     private ArrayList<String> tags;
     private String genre;
-    private String buildPath;
-    private String imagePath;
+    private String buildType;
+    private String buildFileName;
+    private String imageFileName;
     private LocalDate created_at;
 
     public Integer getId()
@@ -76,16 +76,24 @@ public class Project
         this.genre = genre;
     }
 
-    public String getBuildPath() {return buildPath;}
-    public void setBuildPath(String buildPath) {this.buildPath = buildPath;}
-
-    public String getImagePath()
+    public String getBuildType()
     {
-        return imagePath;
+        return buildType;
     }
-    public void setImagePath(String imagePath)
+    public void setBuildType(String buildType)
     {
-        this.imagePath = imagePath;
+        this.buildType = buildType;
+    }
+    public String getBuildFileName() {return buildFileName;}
+    public void setBuildFileName(String buildFileName) {this.buildFileName = buildFileName;}
+
+    public String getImageFileName()
+    {
+        return imageFileName;
+    }
+    public void setImageFileName(String imageFileName)
+    {
+        this.imageFileName = imageFileName;
     }
 
     public LocalDate getCreated_at()
