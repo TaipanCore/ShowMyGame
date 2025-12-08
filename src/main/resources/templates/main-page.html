@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои проекты - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div class="header-actions">
+                <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <a th:href="@{/profile/{id}(id=${sessionHelper.getCurrentUser().id})}" class="btn btn-secondary" style="margin-right: 1rem;">
+                        <span>Профиль</span>
+                    </a>
+
+                    <a th:href="@{/project/create}" class="btn btn-primary" style="margin-right: 1rem;">
+                        Создать проект
+                    </a>
+                    <form th:action="@{/logout}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary"
+                                onclick="return confirm('Вы уверены, что хотите выйти?');">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+                <div th:unless="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <a th:href="@{/auth}" class="btn btn-primary">
+                        Войти / Регистрация
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="projects-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Лента проектов</h1>
+            <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}"
+                 style="display: flex; align-items: center; gap: 1rem;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                        Вы вошли как
+                    </div>
+                    <div style="font-weight: 500;">
+                        <a th:href="@{/profile/{id}(id=${sessionHelper.getCurrentUser().id})}" style="color: var(--accent); text-decoration: none;">
+                            [[${sessionHelper.getCurrentUser().username}]]
+                        </a>
+                    </div>
+                </div>
+                <a th:href="@{/profile/{id}(id=${sessionHelper.getCurrentUser().id})}" style="display: block;">
+                    <div th:if="${sessionHelper.getCurrentUser().avatarFileName != null}"
+                         style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+                        <img th:src="@{/files/users/{id}/avatar(id=${sessionHelper.getCurrentUser().id})}"
+                             alt="Аватар"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div th:unless="${sessionHelper.getCurrentUser().avatarFileName != null}"
+                         style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent);
+                                display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        [[${#strings.substring(sessionHelper.getCurrentUser().username, 0, 1).toUpperCase()}]]
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="projects-grid">
+            <div th:each="project : ${projects}" class="project-card"
+                 th:onclick="|window.location.href='/project/' + ${project.id}|">
+                <div class="project-cover-container">
+                    <img th:if="${project.imageFileName}"
+                         th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+                         alt="Обложка проекта" class="project-cover">
+                    <div th:unless="${project.imageFileName}" class="project-cover skeleton"></div>
+                </div>
+
+                <div class="project-info">
+                    <h3 class="project-title" th:text="${project.title}">Название проекта</h3>
+                    <p class="project-author">
+                        <a th:href="@{/profile/{id}(id=${project.author.id})}"
+                           style="color: var(--text-secondary); text-decoration: none;"
+                           th:onclick="event.stopPropagation();">
+                            Автор: [[${project.author.username}]]
+                        </a>
+                    </p>
+                    <span class="project-genre" th:text="${project.getGenresAsString()}">Жанры</span>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(projects)}" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <h3>Пока нет проектов</h3>
+            <p>Будьте первым, кто добавит свой проект!</p>
+
+            <div th:unless="${sessionHelper != null && sessionHelper.isAuthenticated()}"
+                 style="margin-top: 1.5rem;">
+                <a th:href="@{/auth}" class="btn btn-primary">
+                    Зарегистрируйтесь, чтобы добавить проект
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

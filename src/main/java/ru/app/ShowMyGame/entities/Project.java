@@ -4,23 +4,30 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @Entity
 @Table(name="projects")
 public class Project
 {
+    public Project()
+    {
+        this.createdAt = LocalDate.now();
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer author_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
     private String title;
     private String description;
-    private ArrayList<String> tags;
-    private String genre;
+    private String tags;
+    private String genres;
     private String buildType;
-    private String buildFileName;
+    private String buildFolderName;
     private String imageFileName;
-    private LocalDate created_at;
+    private LocalDate createdAt;
 
     public Integer getId()
     {
@@ -31,13 +38,13 @@ public class Project
         this.id = id;
     }
 
-    public Integer getAuthor_id()
+    public User getAuthor()
     {
-        return author_id;
+        return author;
     }
-    public void setAuthor_id(Integer author_id)
+    public void setAuthor(User author)
     {
-        this.author_id = author_id;
+        this.author = author;
     }
 
     public String getTitle()
@@ -60,20 +67,50 @@ public class Project
 
     public ArrayList<String> getTags()
     {
-        return tags;
+        if (tags == null || tags.trim().isEmpty())
+        {
+            return new ArrayList<>();
+        }
+        return (ArrayList<String>) Arrays.asList(tags.split(","));
     }
     public void setTags(ArrayList<String> tags)
     {
-        this.tags = tags;
+        if (tags == null || tags.isEmpty())
+        {
+            this.tags = null;
+        }
+        else
+        {
+            this.tags = String.join(",", tags);
+        }
     }
 
-    public String getGenre()
+    public ArrayList<String> getGenres()
     {
-        return genre;
+        if (genres == null || genres.trim().isEmpty())
+        {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Arrays.asList(genres.split(",")));
     }
-    public void setGenre(String genre)
+    public String getGenresAsString()
     {
-        this.genre = genre;
+        if (genres == null || genres.trim().isEmpty())
+        {
+            return "";
+        }
+        return genres.replace(",", ", ");
+    }
+    public void setGenres(ArrayList<String> genres)
+    {
+        if (genres == null || genres.isEmpty())
+        {
+            this.genres = null;
+        }
+        else
+        {
+            this.genres = String.join(",", genres);
+        }
     }
 
     public String getBuildType()
@@ -84,8 +121,8 @@ public class Project
     {
         this.buildType = buildType;
     }
-    public String getBuildFileName() {return buildFileName;}
-    public void setBuildFileName(String buildFileName) {this.buildFileName = buildFileName;}
+    public String getBuildFolderName() {return buildFolderName;}
+    public void setBuildFolderName(String buildFolderName) {this.buildFolderName = buildFolderName;}
 
     public String getImageFileName()
     {
@@ -96,12 +133,12 @@ public class Project
         this.imageFileName = imageFileName;
     }
 
-    public LocalDate getCreated_at()
+    public LocalDate getCreatedAt()
     {
-        return created_at;
+        return createdAt;
     }
-    public void setCreated_at(LocalDate created_at)
+    public void setCreatedAt(LocalDate createdAt)
     {
-        this.created_at = created_at;
+        this.createdAt = createdAt;
     }
 }

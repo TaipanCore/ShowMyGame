@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ru.app.ShowMyGame.entities.Project;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class ProjectRepository
@@ -16,9 +17,10 @@ public class ProjectRepository
     private EntityManager entityManager;
 
     @Transactional
-    public Project getProjectById(Integer id)
+    public Optional<Project> getProjectById(Integer id)
     {
-        return entityManager.find(Project.class, id);
+        Project project = entityManager.find(Project.class, id);
+        return Optional.ofNullable(project);
     }
     @Transactional
     public List<Project> getAllProjects()

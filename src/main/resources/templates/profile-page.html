@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${user.username + ' - Профиль'}">Профиль пользователя - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div>
+                <a href="/projects" class="btn btn-secondary" style="margin-right: 1rem;">← На главную</a>
+                <a th:href="@{/project/create}" class="btn btn-primary" style="margin-right: 1rem;">
+                    Добавить проект
+                </a>
+                <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="margin-right: 1rem;">
+                    Редактировать
+                </a>
+                <form th:action="@{/logout}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary" onclick="return confirm('Вы уверены, что хотите выйти из профиля?');">
+                        Выйти
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" style="margin-top: 1rem;">
+        <span th:text="${success}">Успешно!</span>
+    </div>
+    <div th:if="${error}" class="alert alert-error" style="margin-top: 1rem;">
+        <span th:text="${error}">Ошибка!</span>
+    </div>
+
+    <div class="project-details">
+        <div class="project-header">
+            <div class="avatar-container">
+                <img th:if="${user.avatarFileName}"
+                     th:src="@{/files/users/{id}/avatar(id=${user.id})}"
+                     alt="Аватар пользователя" class="user-avatar">
+                <div th:unless="${user.avatarFileName}" class="user-avatar skeleton"></div>
+            </div>
+
+            <div class="project-meta">
+                <h1 th:text="${user.username}">Имя пользователя</h1>
+
+                <div class="user-stats">
+                    <div th:if="${user.role.name() == 'developer'}" class="stat-item">
+                        <span class="stat-number" th:text="${user.projects != null ? user.projects.size() : 0}">0</span>
+                        <span class="stat-label">Проектов</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${#temporals.format(user.createdAt, 'dd-MM-yyyy')}">Дата</span>
+                        <span class="stat-label">Зарегистрирован</span>
+                    </div>
+                </div>
+
+                <div class="meta-grid">
+                    <span class="meta-label">Email:</span>
+                    <span class="meta-value" th:text="${user.email}">email@example.com</span>
+
+                    <span class="meta-label">Роль:</span>
+                    <span class="meta-value" th:text="${user.role.getDisplayName}">USER</span>
+                </div>
+
+                <div th:if="${user.description}" class="user-description">
+                    <h3>О себе</h3>
+                    <p th:text="${user.description}">Описание пользователя...</p>
+                    <div style="margin-top: 1rem;">
+                        <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                            Редактировать описание
+                        </a>
+                    </div>
+                </div>
+
+                <div th:unless="${user.description}" class="user-description" style="margin-top: 1rem;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        Расскажите о себе, чтобы другие пользователи могли вас узнать лучше
+                    </p>
+                    <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                        Добавить описание
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${user.projects != null && !user.projects.isEmpty() && user.role.name() == 'developer'}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
+            <h2>Проекты пользователя</h2>
+            <a th:href="@{/project/create}" class="btn btn-primary" style="font-size: 0.9rem;">
+                Создать новый проект
+            </a>
+        </div>
+
+        <div class="projects-grid">
+            <div th:each="project : ${user.projects}" class="project-card">
+                <div class="project-cover-container" th:onclick="|window.location.href='/project/' + ${project.id}|">
+                    <img th:if="${project.imageFileName}"
+                         th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+                         alt="Обложка проекта" class="project-cover">
+                    <div th:unless="${project.imageFileName}" class="project-cover skeleton"></div>
+                </div>
+
+                <div class="project-info">
+                    <h3 class="project-title" th:text="${project.title}">Название проекта</h3>
+                    <span class="project-genre" th:text="${project.getGenresAsString}">Жанры</span>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;"
+                       th:text="${#strings.abbreviate(project.description, 100)}">Краткое описание...</p>
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <a th:href="@{/project/{id}(id=${project.id})}"
+                           class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: 1;">
+                            Просмотр
+                        </a>
+                        <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                           class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: 1;">
+                            Редактировать
+                        </a>
+                        <form th:action="@{/project/{id}/delete(id=${project.id})}"
+                              method="POST"
+                              style="display: inline; flex: 1;"
+                              onsubmit="return confirm('Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.');">
+                            <button type="submit"
+                                    class="btn btn-secondary"
+                                    style="width: 100%; padding: 0.4rem 0.8rem; font-size: 0.8rem; background-color: #dc3545; border-color: #dc3545;">
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${(user.projects == null || user.projects.isEmpty()) && user.role.name() == 'developer'}"
+         style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <h3>Пока нет проектов</h3>
+        <p>У вас еще нет созданных проектов. Создайте свой первый проект!</p>
+
+        <div style="margin-top: 1.5rem;">
+            <a th:href="@{/project/create}" class="btn btn-primary" style="padding: 1rem 2rem;">
+                Создать первый проект
+            </a>
+        </div>
+    </div>
+</main>
+
+<script src="/js/profile-page.js"></script>
+</body>
+</html>

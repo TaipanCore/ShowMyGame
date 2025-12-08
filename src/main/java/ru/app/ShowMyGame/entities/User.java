@@ -1,25 +1,47 @@
 package ru.app.ShowMyGame.entities;
 
-import java.awt.image.BufferedImage;
-import java.time.LocalDate;
+import jakarta.persistence.*;
 
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+@Table(name="users")
 public class User
 {
+    public User ()
+    {
+        this.createdAt = LocalDate.now();
+    }
     public enum UserRole
     {
-        developer,
-        publisher,
-        studio,
-        player
+        player("Игрок"),
+        developer("Разработчик"),
+        publisher("Издатель");
+
+        private String displayName;
+        UserRole(String displayName)
+        {
+            this.displayName = displayName;
+        }
+        public String getDisplayName()
+        {
+            return displayName;
+        }
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @OneToMany(mappedBy = "author")
+    private List<Project> projects;
     private String username;
     private String email;
+    private String passwordHash;
     private UserRole role;
     private String description;
-    private BufferedImage avatar;
-    private LocalDate created_at;
+    private String avatarFileName;
+    private LocalDate createdAt;
 
     public Integer getId()
     {
@@ -29,6 +51,16 @@ public class User
     public void setId(Integer id)
     {
         this.id = id;
+    }
+
+    public List<Project> getProjects()
+    {
+        return projects;
+    }
+
+    public void setProjects(List<Project> projects)
+    {
+        this.projects = projects;
     }
 
     public String getUsername()
@@ -51,6 +83,16 @@ public class User
         this.email = email;
     }
 
+    public String getPasswordHash()
+    {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash)
+    {
+        this.passwordHash = passwordHash;
+    }
+
     public UserRole getRole()
     {
         return role;
@@ -71,23 +113,23 @@ public class User
         this.description = description;
     }
 
-    public BufferedImage getAvatar()
+    public String getAvatarFileName()
     {
-        return avatar;
+        return avatarFileName;
     }
 
-    public void setAvatar(BufferedImage avatar)
+    public void setAvatarFileName(String avatarFileName)
     {
-        this.avatar = avatar;
+        this.avatarFileName = avatarFileName;
     }
 
-    public LocalDate getCreated_at()
+    public LocalDate getCreatedAt()
     {
-        return created_at;
+        return createdAt;
     }
 
-    public void setCreated_at(LocalDate created_at)
+    public void setCreatedAt(LocalDate createdAt)
     {
-        this.created_at = created_at;
+        this.createdAt = createdAt;
     }
 }

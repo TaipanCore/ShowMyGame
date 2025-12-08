@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование профиля - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/edit-profile.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div>
+                <a href="/projects" class="btn btn-secondary" style="margin-right: 1rem;">← На главную</a>
+                <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-secondary">← Назад в профиль</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="edit-container">
+        <h1 class="page-title">Редактирование профиля</h1>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <form th:action="@{/profile/{id}/update(id=${user.id})}"
+              method="post"
+              enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label class="form-label" for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username"
+                       th:value="${user.username}"
+                       class="form-control" required>
+                <small style="color: var(--text-secondary); font-size: 0.8rem;">
+                    Это имя будет отображаться другим пользователям
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Описание:</label>
+                <textarea id="description" name="description" class="form-control"
+                          placeholder="Расскажите о себе..."
+                          th:text="${user.description}"></textarea>
+                <small style="color: var(--text-secondary); font-size: 0.8rem;">
+                    Максимум 500 символов
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Аватар:</label>
+                <div class="avatar-upload">
+                    <div class="avatar-preview-container">
+                        <img th:if="${user.avatarFileName}"
+                             th:src="@{/files/users/{id}/avatar(id=${user.id})}"
+                             alt="Текущий аватар" class="user-avatar">
+                        <div th:unless="${user.avatarFileName}"
+                             class="user-avatar skeleton" style="border: none;"></div>
+
+                        <div class="avatar-info">
+                            <p>Текущий аватар</p>
+                            <p>Чтобы изменить, выберите новый файл</p>
+                        </div>
+                    </div>
+
+                    <input type="file" id="avatarFile" name="avatarFile"
+                           accept="image/jpeg,image/png,image/gif"
+                           class="form-control">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Сохранить изменения
+                </button>
+                <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

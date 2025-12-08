@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация / Регистрация</title>
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body class="auth-page">
+<div class="auth-container">
+    <div class="auth-tabs">
+        <button class="auth-tab active" onclick="showTab('login')">Вход</button>
+        <button class="auth-tab" onclick="showTab('register')">Регистрация</button>
+    </div>
+
+    <div id="login-tab" class="auth-tab-content active">
+        <h2 class="auth-form-title">Вход в аккаунт</h2>
+        <p class="auth-form-subtitle">Введите свои учетные данные</p>
+
+        <div id="login-error" class="auth-error-message"></div>
+        <div id="login-success" class="auth-success-message"></div>
+
+        <form id="login-form">
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="login-email">Email</label>
+                <input type="email" id="login-email" class="auth-form-input"
+                       placeholder="ваш@email.com" required>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="login-password">Пароль</label>
+                <input type="password" id="login-password" class="auth-form-input"
+                       placeholder="Введите пароль" required>
+            </div>
+
+            <div class="auth-loading" id="login-loading">
+                <div class="auth-spinner"></div> Выполняется вход...
+            </div>
+
+            <button type="submit" class="auth-btn auth-btn-primary">Войти</button>
+
+            <div class="auth-divider">или</div>
+
+            <button type="button" class="auth-btn auth-btn-secondary" onclick="showTab('register')">
+                Создать новый аккаунт
+            </button>
+        </form>
+    </div>
+
+    <div id="register-tab" class="auth-tab-content">
+        <h2 class="auth-form-title">Создать аккаунт</h2>
+        <p class="auth-form-subtitle">Заполните все поля для регистрации</p>
+
+        <div id="register-error" class="auth-error-message"></div>
+        <div id="register-success" class="auth-success-message"></div>
+
+        <form id="register-form" enctype="multipart/form-data">
+            <div class="auth-avatar-upload">
+                <img id="avatar-preview" src="/images/default-avatar.jpg"
+                     alt="Аватар" class="auth-avatar-preview"
+                     onclick="document.getElementById('avatar-input').click()">
+                <input type="file" id="avatar-input" class="auth-avatar-input"
+                       name="avatar" accept="image/*" onchange="previewAvatar(event)">
+                <div style="color: #666; font-size: 14px;">
+                    Кликните для загрузки аватара (необязательно)
+                </div>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="register-email">Email *</label>
+                <input type="email" id="register-email" class="auth-form-input"
+                       placeholder="ваш@email.com" required>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="register-username">Имя пользователя *</label>
+                <input type="text" id="register-username" class="auth-form-input"
+                       placeholder="Придумайте имя" required>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="register-role">Роль *</label>
+                <select id="register-role" class="auth-form-input" required>
+                    <option value="player" selected>Игрок</option>
+                    <option value="publisher">Издатель</option>
+                    <option value="developer">Разработчик</option>
+                </select>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="register-password">Пароль *</label>
+                <input type="password" id="register-password" class="auth-form-input"
+                       placeholder="Не менее 4 символов" required>
+            </div>
+
+            <div class="auth-form-group">
+                <label class="auth-form-label" for="register-confirm-password">Подтверждение пароля *</label>
+                <input type="password" id="register-confirm-password" class="auth-form-input"
+                       placeholder="Повторите пароль" required>
+            </div>
+
+            <div class="auth-loading" id="register-loading">
+                <div class="auth-spinner"></div> Регистрация...
+            </div>
+
+            <button type="submit" class="auth-btn auth-btn-primary">Зарегистрироваться</button>
+
+            <div class="auth-divider">или</div>
+
+            <button type="button" class="auth-btn auth-btn-secondary" onclick="showTab('login')">
+                Уже есть аккаунт? Войти
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+</body>
+</html>

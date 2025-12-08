@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title + ' - ShowMyGame'}">Project Title - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/comments-ratings.css}">
+</head>
+<body data-project-id="${project.id}" data-user-rate="${userRate != null ? userRate.rate : 'null'}">
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div class="header-actions">
+                <a href="/projects" class="btn btn-secondary">← На главную</a>
+                <div th:if="${sessionHelper.getCurrentUser() == project.author}" style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                    <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                       class="btn btn-secondary">
+                        Редактировать
+                    </a>
+                    <form th:action="@{/project/{id}/delete(id=${project.id})}"
+                          method="POST"
+                          style="display: inline;"
+                          onsubmit="return confirm('Вы уверены, что хотите удалить этот проект?');">
+                        <button type="submit" class="btn btn-danger">
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" style="margin-top: 1rem;">
+        <span th:text="${success}">Успешно!</span>
+    </div>
+    <div th:if="${error}" class="alert alert-error" style="margin-top: 1rem;">
+        <span th:text="${error}">Ошибка!</span>
+    </div>
+
+    <div class="project-details">
+        <div class="project-header">
+            <img th:if="${project.imageFileName}"
+                 th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+                 alt="Обложка проекта" class="project-cover-large">
+            <div th:unless="${project.imageFileName}" class="project-cover-large skeleton"></div>
+
+            <div class="project-meta">
+                <h1 th:text="${project.title}">Название проекта</h1>
+
+                <div style="margin: 0.5rem 0 1rem 0; font-size: 1.1rem;">
+                    <span style="color: var(--text-secondary);">Автор: </span>
+                    <a th:href="@{/profile/{id}(id=${project.author.id})}"
+                       class="author-link"
+                       th:text="${project.author.username}">
+                        Автор
+                    </a>
+                </div>
+
+                <div class="rating-container">
+                    <div class="rating-section">
+                        <div class="rating-title">Ваша оценка</div>
+                        <div class="star-rating" id="userRating">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <div id="userRatingText" style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                            Оцените проект
+                        </div>
+                    </div>
+
+                    <div class="rating-section" style="text-align: center;">
+                        <div class="rating-title">Средняя оценка</div>
+                        <div class="average-rating"
+                             th:text="${#strings.defaultString(#numbers.formatDecimal(averageRate ?: 0, 1, 1), '0.0')}">
+                            0.0
+                        </div>
+                        <div class="rating-count" th:text="'(' + ${commentsCount} + ' оценок)'">
+                            (0 оценок)
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <span style="color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                        Жанры:
+                    </span>
+                    <div class="tags-container">
+                        <span class="project-genre" th:text="${project.getGenresAsString()}">Жанры</span>
+                    </div>
+                </div>
+
+                <div th:if="${project.tags != null && !project.tags.isEmpty()}" style="margin-bottom: 1.5rem;">
+                    <span style="color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                        Теги:
+                    </span>
+                    <div class="tags-container">
+                        <span th:each="tag : ${project.tags}"
+                              class="tag-badge"
+                              th:text="${tag}">
+                            Тег
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem;">Описание</h3>
+                    <p class="project-description"
+                       style="line-height: 1.6; font-size: 1.05rem; color: var(--text-primary);"
+                       th:text="${project.description}">
+                        Описание проекта
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${hasGame}" class="game-container">
+            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+                <button class="fullscreen-btn" onclick="toggleFullscreen()">
+                    <span style="font-size: 1.2rem;"></span>Во весь экран
+                </button>
+            </div>
+
+            <div class="game-frame" id="gameFrame">
+                <iframe th:src="@{/files/projects/{id}/build/index.html(id=${project.id})}"
+                        class="game-iframe"
+                        id="gameIframe"
+                        allowfullscreen
+                        allow="autoplay; gamepad"
+                        title="Игровой билд">
+                </iframe>
+            </div>
+        </div>
+
+        <div th:unless="${hasGame}" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <h3 style="margin-bottom: 0.5rem;">Игровая сборка временно недоступна для этого проекта</h3>
+        </div>
+
+        <div class="comments-section">
+            <h2 class="comments-title">Комментарии</h2>
+            <div class="comment-form">
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Добавить комментарий</h3>
+                <form id="commentForm" onsubmit="return submitComment(event)">
+                    <textarea id="commentText"
+                              class="comment-textarea"
+                              placeholder="Напишите ваш комментарий..."
+                              required></textarea>
+                    <button type="submit" class="btn btn-primary">
+                        Отправить комментарий
+                    </button>
+                </form>
+            </div>
+
+            <div class="comments-list" id="commentsList">
+                <div th:each="comment : ${comments}" class="comment-item" th:id="|comment-${comment.id}|">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <a th:href="@{/profile/{id}(id=${comment.user.id})}" style="text-decoration: none;">
+                                <img th:if="${comment.user.avatarFileName}"
+                                     th:src="@{/files/users/{id}/avatar(id=${comment.user.id})}"
+                                     alt="Аватар" class="comment-avatar">
+                                <div th:unless="${comment.user.avatarFileName}" class="comment-avatar-placeholder">
+                                    <span th:text="${#strings.substring(comment.user.username, 0, 1).toUpperCase()}">
+                                        U
+                                    </span>
+                                </div>
+                            </a>
+                            <div class="comment-info">
+                                <a th:href="@{/profile/{id}(id=${comment.user.id})}"
+                                   class="comment-username"
+                                   th:text="${comment.user.username}">
+                                    Пользователь
+                                </a>
+                                <div class="comment-date"
+                                     th:text="${#temporals.format(comment.createdAt, 'dd.MM.yyyy HH:mm')}">
+                                    01.01.2023 12:00
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-actions"
+                             th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && comment.user.id == sessionHelper.getCurrentUser().id}">
+                            <button class="comment-action-btn edit"
+                                    th:onclick="|editComment(${comment.id})|">
+                                Редактировать
+                            </button>
+                            <button class="comment-action-btn delete"
+                                    th:onclick="|deleteComment(${comment.id})|">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="comment-content" th:id="|comment-content-${comment.id}|">
+                        <span th:text="${comment.text}">Текст комментария</span>
+                    </div>
+
+                    <div class="comment-edit-form" th:id="|comment-edit-form-${comment.id}|">
+                        <textarea class="comment-edit-textarea"
+                                  th:id="|comment-edit-text-${comment.id}|"
+                                  th:text="${comment.text}"></textarea>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary"
+                                    th:onclick="|saveCommentEdit(${comment.id})|">
+                                Сохранить
+                            </button>
+                            <button class="btn btn-secondary"
+                                    th:onclick="|cancelCommentEdit(${comment.id})|">
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(comments)}" class="no-comments">
+                    <p>Пока нет комментариев. Будьте первым!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="/js/project-page.js"></script>
+</body>
+</html>

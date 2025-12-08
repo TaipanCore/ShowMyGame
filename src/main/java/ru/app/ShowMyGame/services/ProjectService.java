@@ -7,6 +7,7 @@ import ru.app.ShowMyGame.entities.Project;
 import ru.app.ShowMyGame.repositories.ProjectRepository;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,7 +20,7 @@ public class ProjectService
 
     public Project getProjectById(Integer id)
     {
-        return projectRepository.getProjectById(id);
+        return projectRepository.getProjectById(id).orElseThrow(() -> new RuntimeException("Проект не найден"));
     }
     public List<Project> getAllProjects()
     {
@@ -30,52 +31,43 @@ public class ProjectService
         Project savedProject = projectRepository.addNewProject(project);
         if (imageFile != null && !imageFile.isEmpty())
         {
-            savedProject.setImageFileName(imageFile.getOriginalFilename());
-            fileService.storeImage(imageFile, savedProject);
+            String fileName = fileService.storeImage(imageFile, savedProject);
+            savedProject.setImageFileName(fileName);
         }
         if (buildZip != null && !buildZip.isEmpty())
         {
-            savedProject.setBuildFileName(fileService.getBuildFolderName(buildZip));
-            fileService.storeBuild(buildZip, savedProject);
+
+            String folderName = fileService.storeBuild(buildZip, savedProject);
+            savedProject.setBuildFolderName(folderName);
             savedProject.setBuildType("web");
         }
         return projectRepository.editProject(savedProject);
     }
     public Project editProject(Project project, MultipartFile newImageFile, MultipartFile newBuildZip) throws IOException
     {
-        Project existProject = projectRepository.getProjectById(project.getId());
-        if (existProject == null)
-        {
-            throw new RuntimeException("Проект не найден!");
-        }
+        Project existProject = projectRepository.getProjectById(project.getId()).orElseThrow(() -> new RuntimeException("Проект не найден"));
         existProject.setTitle(project.getTitle());
         existProject.setDescription(project.getDescription());
-        existProject.setGenre(project.getGenre());
+        existProject.setGenres(project.getGenres());
         existProject.setTags(project.getTags());
         if (newImageFile != null && !newImageFile.isEmpty())
         {
-            String newImageName = fileService.storeImage(newImageFile, project);
-            existProject.setImageFileName(newImageName);
+            fileService.deleteImage(project);
+            String newFileName = fileService.storeImage(newImageFile, project);
+            existProject.setImageFileName(newFileName);
         }
         if (newBuildZip != null && !newBuildZip.isEmpty())
         {
             fileService.deleteBuild(project);
-            String newBuildPath = fileService.storeBuild(newBuildZip, project);
-            existProject.setBuildFileName(newBuildPath);
+            String newFolderName = fileService.storeBuild(newBuildZip, project);
+            existProject.setBuildFolderName(newFolderName);
         }
         return projectRepository.editProject(existProject);
     }
     public void deleteProjectById(Integer id) throws IOException
     {
-        Project project = projectRepository.getProjectById(id);
-        if (project != null)
-        {
-            fileService.deleteProjectFolder(project);
-            projectRepository.deleteProject(project);
-        }
-        else
-        {
-            throw new RuntimeException("Проект не найден!");
-        }
+        Project project = projectRepository.getProjectById(id).orElseThrow(() -> new RuntimeException("Проект не найден"));
+        fileService.deleteProjectFiles(project);
+        projectRepository.deleteProject(project);
     }
 }

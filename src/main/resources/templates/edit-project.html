@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать проект</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/project-forms.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div>
+                <a th:href="@{/game/{id}(id=${project.id})}" class="btn btn-secondary">← К проекту</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="project-form-container">
+        <h1>Редактировать проект</h1>
+
+        <div th:if="${success}" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            [[${success}]]
+        </div>
+        <div th:if="${error}" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            [[${error}]]
+        </div>
+
+        <form id="projectForm" th:action="@{/project/{id}/update(id=${project.id})}" method="post" enctype="multipart/form-data">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Название *</label>
+                <input type="text" name="title"
+                       th:value="${title != null ? title : project.title}"
+                       style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);"
+                       required>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Описание</label>
+                <textarea name="description"
+                          th:text="${description != null ? description : project.description}"
+                          style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); min-height: 150px;"
+                ></textarea>
+            </div>
+
+            <div class="genres-container">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Жанры * (до 3)</label>
+                <div class="genres-grid">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Экшен"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Экшен') : project.genres.contains('Экшен')}"
+                               onchange="updateGenresCount()">
+                        <span>Экшен</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Приключение"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Приключение') : project.genres.contains('Приключение')}"
+                               onchange="updateGenresCount()">
+                        <span>Приключение</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Ролевая игра"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Ролевая игра') : project.genres.contains('Ролевая игра')}"
+                               onchange="updateGenresCount()">
+                        <span>Ролевая игра</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Стратегия"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Стратегия') : project.genres.contains('Стратегия')}"
+                               onchange="updateGenresCount()">
+                        <span>Стратегия</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Симулятор"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Симулятор') : project.genres.contains('Симулятор')}"
+                               onchange="updateGenresCount()">
+                        <span>Симулятор</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Головоломка"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Головоломка') : project.genres.contains('Головоломка')}"
+                               onchange="updateGenresCount()">
+                        <span>Головоломка</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Аркада"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Аркада') : project.genres.contains('Аркада')}"
+                               onchange="updateGenresCount()">
+                        <span>Аркада</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Хоррор"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Хоррор') : project.genres.contains('Хоррор')}"
+                               onchange="updateGenresCount()">
+                        <span>Хоррор</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Песочница"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Песочница') : project.genres.contains('Песочница')}"
+                               onchange="updateGenresCount()">
+                        <span>Песочница</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="ММО"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('ММО') : project.genres.contains('ММО')}"
+                               onchange="updateGenresCount()">
+                        <span>ММО</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Спортивная игра"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Спортивная игра') : project.genres.contains('Спортивная игра')}"
+                               onchange="updateGenresCount()">
+                        <span>Спортивная игра</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="genres" value="Казуальная игра"
+                               th:checked="${selectedGenres != null ? selectedGenres.contains('Казуальная игра') : project.genres.contains('Казуальная игра')}"
+                               onchange="updateGenresCount()">
+                        <span>Казуальная игра</span>
+                    </label>
+                </div>
+                <div id="genresCounter" class="counter">Выбрано: 0/3</div>
+            </div>
+
+            <div class="tags-container">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Теги (до 10)</label>
+                <div class="tags-input-container" id="tagsContainer">
+                    <input type="text" id="tagInput" class="tags-input"
+                           placeholder="Введите тег и нажмите Enter..."
+                           onkeydown="handleTagInput(event)">
+                </div>
+                <div id="tagsCounter" class="counter">Добавлено: 0/10</div>
+                <input type="hidden" id="tagsHidden" name="tags" value="">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Обложка (оставьте пустым, чтобы не менять)</label>
+                <input type="file" name="imageFile" accept="image/*"
+                       onchange="validateImage(this)">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Новый билд (оставьте пустым, чтобы не менять)</label>
+                <input type="file" name="buildFile" accept=".zip"
+                       onchange="validateZip(this)">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 2;">Сохранить</button>
+                <a th:href="@{/game/{id}(id=${project.id})}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script src="/js/project-forms.js"></script>
+</body>
+</html>
