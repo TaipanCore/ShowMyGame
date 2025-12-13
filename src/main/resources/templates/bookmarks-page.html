@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои закладки - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div>
+                <a href="/projects" class="btn btn-secondary">← На главную</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div style="max-width: 1200px; margin: 2rem auto;">
+        <h1 style="margin-bottom: 1.5rem;">⭐ Избранные проекты</h1>
+
+        <div th:if="${bookmarkCount > 0}" style="margin-bottom: 1rem; color: var(--text-secondary);">
+            Проектов в избранном: <strong th:text="${bookmarkCount}">0</strong>
+        </div>
+
+        <div th:if="${bookmarkCount == 0}" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <h3 style="margin-bottom: 0.5rem;">Здесь пока пусто</h3>
+            <p>Добавляйте понравившиеся проекты в избранное</p>
+            <a href="/projects" class="btn btn-primary" style="margin-top: 1.5rem;">
+                Перейти к проектам
+            </a>
+        </div>
+
+        <div class="projects-grid" th:if="${bookmarkCount > 0}">
+            <div th:each="project : ${projects}" class="project-card">
+                <div class="project-cover-container"
+                     th:onclick="|window.location.href='/project/' + ${project.id}|">
+                    <img th:if="${project.imageFileName}"
+                         th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+                         alt="Обложка проекта" class="project-cover">
+                    <div th:unless="${project.imageFileName}" class="project-cover skeleton"></div>
+                </div>
+
+                <div class="project-info">
+                    <h3 class="project-title" th:text="${project.title}">Название проекта</h3>
+                    <span class="project-genre" th:text="${project.getGenresAsString}">Жанры</span>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;"></p>
+
+                    <button th:onclick="|removeBookmark(${project.id}, event)|"
+                            class="btn btn-danger" style="width: 100%; padding: 0.4rem 0.8rem; font-size: 0.8rem; background-color: #dc3545; border-color: #dc3545; display: block;">
+                        Удалить из избранного
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="/js/bookmarks.js"></script>
+</body>
+</html>

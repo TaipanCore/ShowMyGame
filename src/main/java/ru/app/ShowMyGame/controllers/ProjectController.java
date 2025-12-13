@@ -8,21 +8,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.app.ShowMyGame.entities.Comment;
-import ru.app.ShowMyGame.entities.Project;
-import ru.app.ShowMyGame.entities.Rate;
-import ru.app.ShowMyGame.entities.User;
-import ru.app.ShowMyGame.services.CommentService;
-import ru.app.ShowMyGame.services.FileService;
-import ru.app.ShowMyGame.services.ProjectService;
+import ru.app.ShowMyGame.entities.*;
+import ru.app.ShowMyGame.services.*;
 import ru.app.ShowMyGame.helpers.SessionHelper;
-import ru.app.ShowMyGame.services.RateService;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 public class ProjectController
@@ -35,6 +26,8 @@ public class ProjectController
     private CommentService commentService;
     @Autowired
     private RateService rateService;
+    @Autowired
+    private BookmarkService bookmarkService;
     @Autowired
     private SessionHelper sessionHelper;
 
@@ -50,17 +43,21 @@ public class ProjectController
         Project project = projectService.getProjectById(id);
         User currentUser = sessionHelper.getCurrentUser();
         List<Comment> comments = commentService.getCommentsByProject(project);
+        List<Rate> totalRates = rateService.getRatesByProject(project);
         Double averageRate = rateService.getAverageRateForProject(project);
         Optional<Rate> userRate = Optional.empty();
         if (currentUser != null)
         {
-            userRate = rateService.getUserRateForProject(project, currentUser);
+            userRate = rateService.getRateByProjectAndUser(project, currentUser);
         }
+        boolean isBookmarked = bookmarkService.isBookmarked(id, currentUser);
         model.addAttribute("project", project);
         model.addAttribute("comments", comments);
         model.addAttribute("averageRate", averageRate != null ? averageRate : 0.0);
         model.addAttribute("userRate", userRate.orElse(null));
+        model.addAttribute("totalRates", totalRates.size());
         model.addAttribute("commentsCount", comments.size());
+        model.addAttribute("isBookmarked", isBookmarked);
         if ("web".equals(project.getBuildType()))
         {
             model.addAttribute("hasGame", fileService.hasIndexPage(project));
@@ -91,129 +88,150 @@ public class ProjectController
     }
 
     @GetMapping("/project/{id}/edit")
-    public String editProjectForm(@PathVariable Integer id, Model model)
-    {
+    public String editProjectForm(@PathVariable Integer id, Model model) {
         Project project = projectService.getProjectById(id);
         model.addAttribute("project", project);
         model.addAttribute("selectedGenres", project.getGenres());
         model.addAttribute("title", project.getTitle());
         model.addAttribute("description", project.getDescription());
-        try
+
+        List<String> tagsList = project.getTags();
+        String tagsString = "";
+        if (tagsList != null && !tagsList.isEmpty())
         {
-            ObjectMapper mapper = new ObjectMapper();
-            String tagsJson = mapper.writeValueAsString(project.getTags());
-            model.addAttribute("selectedTags", tagsJson);
+            tagsString = String.join(",", tagsList);
         }
-        catch (Exception e)
-        {
-            model.addAttribute("selectedTags", "[]");
-        }
+        model.addAttribute("selectedTags", tagsString);
+
         return "edit-project";
     }
 
     @PostMapping("/project/save")
-    public String saveProject(@RequestParam String title, @RequestParam String description, @RequestParam String[] genres, @RequestParam(required = false) String tagsJson, @RequestParam MultipartFile imageFile, @RequestParam MultipartFile buildFile, RedirectAttributes redirectAttributes)
+    public String saveProject(@RequestParam String title, @RequestParam String description, @RequestParam String[] genres, @RequestParam(required = false) String tags, @RequestParam MultipartFile imageFile, @RequestParam MultipartFile buildFile, RedirectAttributes redirectAttributes)
     {
         try
         {
-            List<String> tagsList = new ArrayList<>();
-            if (tagsJson != null && !tagsJson.isEmpty())
+            ArrayList<String> tagsList = new ArrayList<>();
+            if (tags != null && !tags.trim().isEmpty() && !tags.trim().equals("[]"))
             {
-                try
-                {
-                    ObjectMapper mapper = new ObjectMapper();
-                    tagsList = mapper.readValue(tagsJson, new TypeReference<List<String>>() {});
+                String tagsTrimmed = tags.trim();
 
-                    if (tagsList.size() > 10)
+                if (tagsTrimmed.startsWith("[") && tagsTrimmed.endsWith("]"))
+                {
+                    try
                     {
-                        throw new RuntimeException("Можно добавить не более 10 тегов");
+                        ObjectMapper mapper = new ObjectMapper();
+                        List<String> jsonTags = mapper.readValue(tagsTrimmed, new TypeReference<List<String>>() {});
+                        tagsList.addAll(jsonTags);
+                    }
+                    catch (Exception e)
+                    {
+                        String inner = tagsTrimmed.substring(1, tagsTrimmed.length() - 1);
+                        if (!inner.isEmpty())
+                        {
+                            String[] parts = inner.split(",");
+                            for (String part : parts)
+                            {
+                                String tag = part.trim().replaceAll("^\"|\"$", "").replaceAll("^'|'$", "");
+                                if (!tag.isEmpty())
+                                {
+                                    tagsList.add(tag);
+                                }
+                            }
+                        }
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    throw new RuntimeException("Ошибка при обработке тегов: " + e.getMessage());
+                    String[] tagArray = tagsTrimmed.split(",");
+                    for (String tag : tagArray)
+                    {
+                        String trimmedTag = tag.trim();
+                        if (!trimmedTag.isEmpty())
+                        {
+                            tagsList.add(trimmedTag);
+                        }
+                    }
                 }
             }
+
             Project project = new Project();
             project.setTitle(title.trim());
             project.setDescription(description.trim());
             project.setGenres(new ArrayList<>(Arrays.asList(genres)));
-            project.setTags(new ArrayList<>(tagsList));
+            project.setTags(tagsList);
             project.setAuthor(sessionHelper.getCurrentUser());
             Project savedProject = projectService.addNewProject(project, imageFile, buildFile);
 
             redirectAttributes.addFlashAttribute("success", "Проект успешно создан!");
             return "redirect:/project/" + savedProject.getId();
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
             redirectAttributes.addFlashAttribute("title", title);
             redirectAttributes.addFlashAttribute("description", description);
             redirectAttributes.addFlashAttribute("selectedGenres", genres != null ? Arrays.asList(genres) : new ArrayList<>());
-            if (tagsJson != null)
-            {
-                redirectAttributes.addFlashAttribute("selectedTags", tagsJson);
-            }
-            else
-            {
-                redirectAttributes.addFlashAttribute("selectedTags", "[]");
-            }
+            redirectAttributes.addFlashAttribute("selectedTags", tags != null ? tags : "");
             return "redirect:/project/create";
         }
     }
 
     @PostMapping("/project/{id}/update")
-    public String updateProject(@PathVariable Integer id, @RequestParam String title, @RequestParam String description, @RequestParam String[] genres, @RequestParam(required = false) String tagsJson, @RequestParam(required = false) MultipartFile imageFile, @RequestParam(required = false) MultipartFile buildFile, RedirectAttributes redirectAttributes)
-    {
+    public String updateProject(@PathVariable Integer id, @RequestParam String title, @RequestParam String description, @RequestParam String[] genres, @RequestParam(required = false) String tags, @RequestParam(required = false) MultipartFile imageFile, @RequestParam(required = false) MultipartFile buildFile, RedirectAttributes redirectAttributes) {
         try
         {
-            List<String> tagsList = new ArrayList<>();
-            if (tagsJson != null && !tagsJson.isEmpty())
-            {
-                try
-                {
-                    ObjectMapper mapper = new ObjectMapper();
-                    tagsList = mapper.readValue(tagsJson, new TypeReference<List<String>>() {});
-
-                    if (tagsList.size() > 10)
-                    {
-                        throw new RuntimeException("Можно добавить не более 10 тегов");
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new RuntimeException("Ошибка при обработке тегов: " + e.getMessage());
-                }
-            }
             Project project = projectService.getProjectById(id);
-
             project.setTitle(title.trim());
             project.setDescription(description.trim());
             project.setGenres(new ArrayList<>(Arrays.asList(genres)));
-            project.setTags(new ArrayList<>(tagsList));
-            Project updated = projectService.editProject(project, imageFile, buildFile);
 
+            ArrayList<String> tagsList = new ArrayList<>();
+            if (tags != null && !tags.trim().isEmpty() && !tags.trim().equals("[]")) {
+                String tagsTrimmed = tags.trim();
+
+                if (tagsTrimmed.startsWith("[") && tagsTrimmed.endsWith("]")) {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        List<String> jsonTags = mapper.readValue(tagsTrimmed, new TypeReference<List<String>>() {});
+                        tagsList.addAll(jsonTags);
+                    } catch (Exception e) {
+                        String inner = tagsTrimmed.substring(1, tagsTrimmed.length() - 1);
+                        if (!inner.isEmpty()) {
+                            String[] parts = inner.split(",");
+                            for (String part : parts) {
+                                String tag = part.trim().replaceAll("^\"|\"$", "").replaceAll("^'|'$", "");
+                                if (!tag.isEmpty()) {
+                                    tagsList.add(tag);
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    String[] tagArray = tagsTrimmed.split(",");
+                    for (String tag : tagArray) {
+                        String trimmedTag = tag.trim();
+                        if (!trimmedTag.isEmpty()) {
+                            tagsList.add(trimmedTag);
+                        }
+                    }
+                }
+            }
+
+            project.setTags(tagsList);
+            Project updated = projectService.editProject(project, imageFile, buildFile);
             redirectAttributes.addFlashAttribute("success", "Проект успешно обновлен!");
             return "redirect:/project/" + updated.getId();
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
+            System.err.println("Ошибка при обновлении: " + e.getMessage());
+            e.printStackTrace();
+
             redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
             redirectAttributes.addFlashAttribute("title", title);
             redirectAttributes.addFlashAttribute("description", description);
             redirectAttributes.addFlashAttribute("selectedGenres", genres != null ? Arrays.asList(genres) : new ArrayList<>());
-            if
-            (tagsJson != null)
-            {
-                redirectAttributes.addFlashAttribute("selectedTags", tagsJson);
-            }
-            else
-            {
-                redirectAttributes.addFlashAttribute("selectedTags", "[]");
-            }
+            redirectAttributes.addFlashAttribute("selectedTags", tags != null ? tags : "");  // ← Пустая строка вместо "[]"
             return "redirect:/project/" + id + "/edit";
         }
     }

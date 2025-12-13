@@ -1,4 +1,3 @@
-// ========== УПРАВЛЕНИЕ ЖАНРАМИ ==========
 function updateGenresCount() {
     const checkboxes = document.querySelectorAll('input[name="genres"]:checked');
     const counter = document.getElementById('genresCounter');
@@ -27,24 +26,37 @@ function updateGenresCount() {
     }
 }
 
-// ========== УПРАВЛЕНИЕ ТЕГАМИ ==========
 let tags = [];
-
-// Инициализация тегов из flash атрибутов
 document.addEventListener('DOMContentLoaded', function() {
     const savedTags = document.body.getAttribute('data-saved-tags');
-    if (savedTags && savedTags !== 'null' && savedTags.startsWith('[')) {
+    console.log("Сохраненные теги из атрибута:", savedTags);
+
+    if (savedTags && savedTags !== 'null' && savedTags !== '[]') {
         try {
-            const tagsArray = JSON.parse(savedTags.replace(/&#39;/g, '"'));
-            tagsArray.forEach(tag => addTag(tag));
+            if (savedTags.startsWith('[')) {
+                const tagsArray = JSON.parse(savedTags.replace(/&#39;/g, '"'));
+                console.log("Парсинг JSON:", tagsArray);
+                tagsArray.forEach(tag => addTag(tag));
+            }
+            else if (savedTags.includes(',')) {
+                const tagsArray = savedTags.split(',');
+                console.log("Парсинг строки:", tagsArray);
+                tagsArray.forEach(tag => {
+                    const trimmedTag = tag.trim();
+                    if (trimmedTag) addTag(trimmedTag);
+                });
+            }
+            else if (savedTags.trim() !== '') {
+                console.log("Один тег:", savedTags);
+                addTag(savedTags.trim());
+            }
         } catch (e) {
-            console.log('Error parsing tags:', e);
+            console.error('Error parsing tags:', e, savedTags);
         }
     }
     updateTagsCounter();
 });
 
-// Добавление тега
 function addTag(tagText) {
     tagText = tagText.trim();
     if (!tagText) return;
@@ -73,7 +85,6 @@ function addTag(tagText) {
     input.value = '';
 }
 
-// Удаление тега
 function removeTag(tagText) {
     tags = tags.filter(t => t !== tagText);
     const container = document.querySelector('.tags-input-container');
@@ -88,7 +99,6 @@ function removeTag(tagText) {
     updateTagsCounter();
 }
 
-// Обработка ввода тегов
 function handleTagInput(event) {
     if (event.key === 'Enter' || event.key === ',') {
         event.preventDefault();
@@ -96,15 +106,13 @@ function handleTagInput(event) {
     }
 }
 
-// Обновление скрытого поля с тегами
 function updateHiddenTagsField() {
     const hiddenField = document.getElementById('tagsHidden');
     if (hiddenField) {
-        hiddenField.value = JSON.stringify(tags);
+        hiddenField.value = tags.join(",");
     }
 }
 
-// Обновление счетчика тегов
 function updateTagsCounter() {
     const counter = document.getElementById('tagsCounter');
     if (counter) {
@@ -120,7 +128,6 @@ function updateTagsCounter() {
     }
 }
 
-// ========== ВАЛИДАЦИЯ ФОРМЫ ==========
 document.getElementById('projectForm')?.addEventListener('submit', function(e) {
     const selectedGenres = document.querySelectorAll('input[name="genres"]:checked');
     if (selectedGenres.length === 0) {
@@ -144,7 +151,6 @@ document.getElementById('projectForm')?.addEventListener('submit', function(e) {
     updateHiddenTagsField();
 });
 
-// ========== ВАЛИДАЦИЯ ФАЙЛОВ ==========
 function validateImage(input) {
     if (input.files[0] && input.files[0].size > 5 * 1024 * 1024) {
         alert('Файл слишком большой (макс 5MB)');

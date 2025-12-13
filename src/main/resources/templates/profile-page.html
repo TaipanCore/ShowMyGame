@@ -11,19 +11,21 @@
     <div class="container">
         <div class="header-content">
             <div class="logo">ShowMyGame</div>
-            <div>
+            <div class="header-actions">
                 <a href="/projects" class="btn btn-secondary" style="margin-right: 1rem;">← На главную</a>
-                <a th:href="@{/project/create}" class="btn btn-primary" style="margin-right: 1rem;">
-                    Добавить проект
-                </a>
-                <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="margin-right: 1rem;">
-                    Редактировать
-                </a>
-                <form th:action="@{/logout}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-secondary" onclick="return confirm('Вы уверены, что хотите выйти из профиля?');">
-                        Выйти
-                    </button>
-                </form>
+                <th:block th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <a th:if="${user.role.name() == 'developer'}" th:href="@{/project/create}" class="btn btn-primary" style="margin-right: 1rem;">
+                        Создать проект
+                    </a>
+                    <a th:if="${user.id == sessionHelper.getCurrentUser().id}" th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="margin-right: 1rem;">
+                        Редактировать
+                    </a>
+                    <form th:action="@{/logout}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" style="margin-right: 1rem;" onclick="return confirm('Вы уверены, что хотите выйти из профиля?');">
+                            Выйти
+                        </button>
+                    </form>
+                </th:block>
             </div>
         </div>
     </div>
@@ -40,10 +42,11 @@
     <div class="project-details">
         <div class="project-header">
             <div class="avatar-container">
-                <img th:if="${user.avatarFileName}"
-                     th:src="@{/files/users/{id}/avatar(id=${user.id})}"
-                     alt="Аватар пользователя" class="user-avatar">
-                <div th:unless="${user.avatarFileName}" class="user-avatar skeleton"></div>
+                <img th:src="${user.avatarFileName != null} ?
+                 @{/files/users/{id}/avatar(id=${user.id})} :
+                 @{/images/default-avatar.jpg}"
+                     alt="Аватар пользователя"
+                     class="user-avatar">
             </div>
 
             <div class="project-meta">
@@ -71,7 +74,7 @@
                 <div th:if="${user.description}" class="user-description">
                     <h3>О себе</h3>
                     <p th:text="${user.description}">Описание пользователя...</p>
-                    <div style="margin-top: 1rem;">
+                    <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id}" style="margin-top: 1rem;">
                         <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
                             Редактировать описание
                         </a>
@@ -82,9 +85,11 @@
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
                         Расскажите о себе, чтобы другие пользователи могли вас узнать лучше
                     </p>
-                    <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
-                        Добавить описание
-                    </a>
+                    <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id}">
+                        <a th:href="@{/profile/{id}/edit(id=${user.id})}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                            Добавить описание
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -93,9 +98,11 @@
     <div th:if="${user.projects != null && !user.projects.isEmpty() && user.role.name() == 'developer'}">
         <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
             <h2>Проекты пользователя</h2>
-            <a th:href="@{/project/create}" class="btn btn-primary" style="font-size: 0.9rem;">
-                Создать новый проект
-            </a>
+            <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id && user.role.name() == 'developer'}">
+                <a th:href="@{/project/create}" class="btn btn-primary" style="font-size: 0.9rem;">
+                    Создать новый проект
+                </a>
+            </div>
         </div>
 
         <div class="projects-grid">
@@ -115,20 +122,22 @@
 
                     <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                         <a th:href="@{/project/{id}(id=${project.id})}"
-                           class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: 1;">
+                           class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
                             Просмотр
                         </a>
-                        <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                        <a th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id}"
+                           th:href="@{/project/{id}/edit(id=${project.id})}"
                            class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: 1;">
                             Редактировать
                         </a>
-                        <form th:action="@{/project/{id}/delete(id=${project.id})}"
+                        <form th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id}"
+                              th:action="@{/project/{id}/delete(id=${project.id})}"
                               method="POST"
                               style="display: inline; flex: 1;"
                               onsubmit="return confirm('Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.');">
                             <button type="submit"
                                     class="btn btn-secondary"
-                                    style="width: 100%; padding: 0.4rem 0.8rem; font-size: 0.8rem; background-color: #dc3545; border-color: #dc3545;">
+                                    style="width: 100%; font-size: 0.8rem; background-color: #dc3545; border-color: #dc3545;">
                                 Удалить
                             </button>
                         </form>
@@ -138,7 +147,7 @@
         </div>
     </div>
 
-    <div th:if="${(user.projects == null || user.projects.isEmpty()) && user.role.name() == 'developer'}"
+    <div th:if="${(user.projects == null || user.projects.isEmpty()) && user.role.name() == 'developer' && sessionHelper != null && sessionHelper.isAuthenticated() && user.id == sessionHelper.getCurrentUser().id}"
          style="text-align: center; padding: 3rem; color: var(--text-secondary);">
         <h3>Пока нет проектов</h3>
         <p>У вас еще нет созданных проектов. Создайте свой первый проект!</p>

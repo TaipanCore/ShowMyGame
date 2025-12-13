@@ -61,7 +61,7 @@ public class RateService
         return rateRepository.getRatesByUser(user);
     }
 
-    public Optional<Rate> getUserRateForProject(Project project, User user)
+    public Optional<Rate> getRateByProjectAndUser(Project project, User user)
     {
         return rateRepository.getRateByProjectAndUser(project, user);
     }

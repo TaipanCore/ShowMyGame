@@ -8,7 +8,6 @@ import ru.app.ShowMyGame.entities.Project;
 import ru.app.ShowMyGame.entities.User;
 import ru.app.ShowMyGame.services.RateService;
 import ru.app.ShowMyGame.services.ProjectService;
-import ru.app.ShowMyGame.services.UserService;
 import ru.app.ShowMyGame.helpers.SessionHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +39,15 @@ public class RateController
             }
 
             Project project = projectService.getProjectById(projectId);
-            Rate newRate = rateService.rateProject(project, currentUser, rate);
+            Rate newRate = rateService.getRateByProjectAndUser(project, currentUser).orElse(null);
+            if (newRate != null)
+            {
+                rateService.updateRate(newRate.getId(), rate);
+            }
+            else
+            {
+                newRate = rateService.rateProject(project, currentUser, rate);
+            }
             Double averageRate = rateService.getAverageRateForProject(project);
 
             return ResponseEntity.ok(Map.of("success", true, "message", "Оценка поставлена", "rate", Map.of("value", newRate.getRate(), "createdAt", newRate.getCreatedAt()), "averageRate", averageRate, "totalRates", rateService.getRateCountForProject(project)));
@@ -62,7 +69,7 @@ public class RateController
                 return ResponseEntity.ok(Map.of("success", true, "hasRate", false));
             }
             Project project = projectService.getProjectById(projectId);
-            Optional<Rate> rate = rateService.getUserRateForProject(project, currentUser);
+            Optional<Rate> rate = rateService.getRateByProjectAndUser(project, currentUser);
 
             if (rate.isPresent())
             {

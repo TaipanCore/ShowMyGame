@@ -1,4 +1,3 @@
-// Переключение между вкладками
 function showTab(tabName) {
     document.querySelectorAll('.auth-tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -12,7 +11,6 @@ function showTab(tabName) {
     clearMessages();
 }
 
-// Превью аватара
 function previewAvatar(event) {
     const input = event.target;
     const preview = document.getElementById('avatar-preview');
@@ -26,7 +24,6 @@ function previewAvatar(event) {
     }
 }
 
-// Очистка сообщений
 function clearMessages() {
     document.querySelectorAll('.auth-error-message, .auth-success-message').forEach(msg => {
         msg.style.display = 'none';
@@ -34,7 +31,6 @@ function clearMessages() {
     });
 }
 
-// Показать сообщение
 function showMessage(elementId, message, isError = true) {
     const element = document.getElementById(elementId);
     element.textContent = message;
@@ -42,7 +38,6 @@ function showMessage(elementId, message, isError = true) {
     element.className = isError ? 'auth-error-message' : 'auth-success-message';
 }
 
-// Валидация пароля
 function validatePassword(password, confirmPassword) {
     if (password.length < 4) {
         return 'Пароль должен содержать не менее 4 символов';
@@ -53,13 +48,11 @@ function validatePassword(password, confirmPassword) {
     return null;
 }
 
-// Валидация email
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
 
-// Обработка входа
 document.getElementById('login-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -94,10 +87,10 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         document.getElementById('login-loading').style.display = 'none';
 
         if (result.success) {
-            showMessage('login-success', 'Успешный вход! Перенаправление...', false);
+            showMessage('login-success', 'Успешный вход!', false);
             setTimeout(() => {
                 window.location.href = '/projects';
-            }, 1000);
+            }, 500);
         } else {
             showMessage('login-error', result.error || 'Ошибка входа');
         }
@@ -107,7 +100,6 @@ document.getElementById('login-form')?.addEventListener('submit', async function
     }
 });
 
-// Обработка регистрации
 document.getElementById('register-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -161,7 +153,7 @@ document.getElementById('register-form')?.addEventListener('submit', async funct
             showMessage('register-success', 'Регистрация успешна! Вы будете перенаправлены в профиль...', false);
             setTimeout(() => {
                 window.location.href = `/profile/${result.id}`;
-            }, 1000);
+            }, 500);
         } else {
             showMessage('register-error', result.error || 'Ошибка регистрации');
         }
@@ -171,7 +163,6 @@ document.getElementById('register-form')?.addEventListener('submit', async funct
     }
 });
 
-// Автозаполнение логина при переходе из регистрации
 document.getElementById('register-email')?.addEventListener('blur', function() {
     const loginEmail = document.getElementById('login-email');
     if (!loginEmail.value) {

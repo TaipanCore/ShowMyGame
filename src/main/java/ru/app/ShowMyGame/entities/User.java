@@ -35,12 +35,17 @@ public class User
     private Integer id;
     @OneToMany(mappedBy = "author")
     private List<Project> projects;
+    @Column(name = "username", nullable = false)
     private String username;
+    @Column(name = "email", nullable = false)
     private String email;
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+    @Column(name = "role", nullable = false)
     private UserRole role;
     private String description;
     private String avatarFileName;
+    @Column(name = "created_at", nullable = false)
     private LocalDate createdAt;
 
     public Integer getId()

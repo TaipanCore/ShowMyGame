@@ -26,7 +26,9 @@ public class Rate
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    @Column(name = "rate", nullable = false)
     private Integer rate;
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     public Integer getId() {

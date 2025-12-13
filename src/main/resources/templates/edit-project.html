@@ -13,7 +13,7 @@
         <div class="header-content">
             <div class="logo">ShowMyGame</div>
             <div>
-                <a th:href="@{/game/{id}(id=${project.id})}" class="btn btn-secondary">← К проекту</a>
+                <a th:href="@{/project/{id}(id=${project.id})}" class="btn btn-secondary">← К проекту</a>
             </div>
         </div>
     </div>
@@ -127,14 +127,18 @@
             </div>
 
             <div class="tags-container">
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Теги (до 10)</label>
-                <div class="tags-input-container" id="tagsContainer">
-                    <input type="text" id="tagInput" class="tags-input"
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">
+                    Теги (введите через Enter или запятую, до 10)
+                </label>
+                <div class="tags-input-container">
+                    <input type="text"
+                           id="tagInput"
+                           class="tags-input"
                            placeholder="Введите тег и нажмите Enter..."
                            onkeydown="handleTagInput(event)">
                 </div>
                 <div id="tagsCounter" class="counter">Добавлено: 0/10</div>
-                <input type="hidden" id="tagsHidden" name="tags" value="">
+                <input type="hidden" id="tagsHidden" name="tags" th:value="${selectedTags}">
             </div>
 
             <div style="margin-bottom: 1.5rem;">
@@ -151,7 +155,7 @@
 
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary" style="flex: 2;">Сохранить</button>
-                <a th:href="@{/game/{id}(id=${project.id})}" class="btn btn-secondary">Отмена</a>
+                <a th:href="@{/project/{id}(id=${project.id})}" class="btn btn-secondary">Отмена</a>
             </div>
         </form>
     </div>

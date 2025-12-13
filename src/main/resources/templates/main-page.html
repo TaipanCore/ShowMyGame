@@ -13,15 +13,17 @@
             <div class="logo">ShowMyGame</div>
             <div class="header-actions">
                 <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <a th:href="@{/bookmarks}" class="btn btn-secondary" style="margin-right: 1rem;">
+                        Избранное
+                    </a>
                     <a th:href="@{/profile/{id}(id=${sessionHelper.getCurrentUser().id})}" class="btn btn-secondary" style="margin-right: 1rem;">
                         <span>Профиль</span>
                     </a>
-
                     <a th:href="@{/project/create}" class="btn btn-primary" style="margin-right: 1rem;">
                         Создать проект
                     </a>
                     <form th:action="@{/logout}" method="POST" style="display: inline;">
-                        <button type="submit" class="btn btn-secondary"
+                        <button type="submit" class="btn btn-danger"
                                 onclick="return confirm('Вы уверены, что хотите выйти?');">
                             Выйти
                         </button>

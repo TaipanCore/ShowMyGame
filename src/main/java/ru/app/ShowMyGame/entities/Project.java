@@ -1,10 +1,13 @@
 package ru.app.ShowMyGame.entities;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Entity
 @Table(name="projects")
@@ -20,13 +23,18 @@ public class Project
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
+    @Column(name = "title", nullable = false)
     private String title;
     private String description;
+    @Column(columnDefinition = "TEXT")
     private String tags;
     private String genres;
     private String buildType;
+    @Column(name = "build_folder_name", nullable = false)
     private String buildFolderName;
+    @Column(name = "image_file_name", nullable = false)
     private String imageFileName;
+    @Column(name = "created_at", nullable = false)
     private LocalDate createdAt;
 
     public Integer getId()
@@ -65,15 +73,27 @@ public class Project
         this.description = description;
     }
 
-    public ArrayList<String> getTags()
+    public List<String> getTags()
     {
-        if (tags == null || tags.trim().isEmpty())
+        if (tags == null || tags.trim().isEmpty() || tags.trim().equals("[]"))
         {
             return new ArrayList<>();
         }
-        return (ArrayList<String>) Arrays.asList(tags.split(","));
+        try
+        {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(tags, new TypeReference<List<String>>() {});
+        }
+        catch (Exception e)
+        {
+            if (tags.contains(","))
+            {
+                return Arrays.asList(tags.split(","));
+            }
+            return new ArrayList<>();
+        }
     }
-    public void setTags(ArrayList<String> tags)
+    public void setTags(List<String> tags)
     {
         if (tags == null || tags.isEmpty())
         {
@@ -81,7 +101,15 @@ public class Project
         }
         else
         {
-            this.tags = String.join(",", tags);
+            try
+            {
+                ObjectMapper mapper = new ObjectMapper();
+                this.tags = mapper.writeValueAsString(tags);
+            }
+            catch (Exception e)
+            {
+                this.tags = String.join(",", tags);
+            }
         }
     }
 

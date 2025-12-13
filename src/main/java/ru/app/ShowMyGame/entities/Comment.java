@@ -28,6 +28,7 @@ public class Comment
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     private String text;
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     public Integer getId()
